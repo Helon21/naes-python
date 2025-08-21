@@ -1,0 +1,155 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}Minhas Equipes - Sistema de Projetos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-people"></i> Minhas Equipes</h1>
+            <a href="{% url 'projetos:criar-equipe' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nova Equipe
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if equipes %}
+    <div class="row">
+        {% for equipe in equipes %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-people"></i> {{ equipe.nome }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {% if equipe.descricao %}
+                                {{ equipe.descricao|truncatewords:20 }}
+                            {% else %}
+                                <span class="text-muted">Sem descrição</span>
+                            {% endif %}
+                        </p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h6 class="text-primary mb-0">{{ equipe.projetos.count }}</h6>
+                                    <small class="text-muted">Projetos</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-success mb-0">{{ equipe.membros.count }}</h6>
+                                <small class="text-muted">Membros</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'projetos:detalhe-equipe' equipe.pk %}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver Detalhes
+                            </a>
+                            <a href="{% url 'projetos:criar-projeto-equipe' equipe.pk %}" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle"></i> Novo Projeto
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="bi bi-calendar"></i> Criada em {{ equipe.criada_em|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <i class="bi bi-people display-1 text-muted mb-4"></i>
+                    <h3 class="text-muted">Nenhuma Equipe Encontrada</h3>
+                    <p class="text-muted mb-4">
+                        Você ainda não participa de nenhuma equipe. Crie uma equipe para começar a colaborar em projetos!
+                    </p>
+                    <a href="{% url 'projetos:criar-equipe' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Criar Primeira Equipe
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Estatísticas Gerais -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Estatísticas das Equipes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ equipes.count }}</h4>
+                            <p class="text-muted mb-0">Total de Equipes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-success">
+                                {% with total_projetos=0 %}
+                                    {% for equipe in equipes %}
+                                        {% with total_projetos=total_projetos|add:equipe.projetos.count %}{% endwith %}
+                                    {% endfor %}
+                                    {{ total_projetos }}
+                                {% endwith %}
+                            </h4>
+                            <p class="text-muted mb-0">Total de Projetos</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-info">
+                                {% with total_membros=0 %}
+                                    {% for equipe in equipes %}
+                                        {% with total_membros=total_membros|add:equipe.membros.count %}{% endwith %}
+                                    {% endfor %}
+                                    {{ total_membros }}
+                                {% endwith %}
+                            </h4>
+                            <p class="text-muted mb-0">Total de Membros</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">
+                            {% if equipes.count > 0 %}
+                                {% with total_projetos=0 %}
+                                    {% for equipe in equipes %}
+                                        {% with total_projetos=total_projetos|add:equipe.projetos.count %}{% endwith %}
+                                    {% endfor %}
+                                    {% if total_projetos > 0 %}
+                                        {{ total_projetos|floatformat:1 }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">Média de Projetos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

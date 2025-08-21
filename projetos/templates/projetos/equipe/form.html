@@ -1,0 +1,74 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Criar Equipe - Sistema de Projetos{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-people"></i> Criar Nova Equipe
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            {{ form.nome|as_crispy_field }}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            {{ form.descricao|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'projetos:lista-equipes' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Criar Equipe
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Informações sobre equipes -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Sobre Equipes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-check-circle text-success"></i> Benefícios</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right"></i> Colaboração em projetos</li>
+                            <li><i class="bi bi-arrow-right"></i> Compartilhamento de recursos</li>
+                            <li><i class="bi bi-arrow-right"></i> Comunicação centralizada</li>
+                            <li><i class="bi bi-arrow-right"></i> Controle de acesso</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-gear text-primary"></i> Funcionalidades</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right"></i> Quadros Kanban</li>
+                            <li><i class="bi bi-arrow-right"></i> Gerenciamento de tarefas</li>
+                            <li><i class="bi bi-arrow-right"></i> Sistema de comentários</li>
+                            <li><i class="bi bi-arrow-right"></i> Upload de arquivos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

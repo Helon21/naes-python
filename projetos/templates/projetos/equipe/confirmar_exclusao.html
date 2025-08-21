@@ -1,0 +1,129 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Exclusão - {{ equipe.nome }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão da Equipe
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-exclamation-triangle display-1 text-danger mb-3"></i>
+                    <h5 class="text-danger">Atenção!</h5>
+                    <p class="lead">Você está prestes a excluir a equipe:</p>
+                    <h4 class="text-dark">{{ equipe.nome }}</h4>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-info-circle"></i> O que acontecerá:</h6>
+                    <ul class="mb-0">
+                        <li>A equipe será marcada como <strong>inativa</strong></li>
+                        <li>Todos os projetos da equipe serão afetados</li>
+                        <li>Os membros perderão acesso à equipe</li>
+                        <li>Esta ação pode ser revertida por um administrador</li>
+                    </ul>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-info-circle"></i> Informações da Equipe:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Nome:</strong> {{ equipe.nome }}</li>
+                            <li><strong>Status:</strong> 
+                                {% if equipe.ativa %}
+                                    <span class="badge bg-success">Ativa</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inativa</span>
+                                {% endif %}
+                            </li>
+                            <li><strong>Total de Membros:</strong> {{ equipe.membros.count }}</li>
+                            <li><strong>Total de Projetos:</strong> {{ equipe.projetos.count }}</li>
+                            <li><strong>Criada em:</strong> {{ equipe.criada_em|date:"d/m/Y" }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-exclamation-triangle text-warning"></i> Requisitos:</h6>
+                        <ul class="list-unstyled">
+                            <li>✓ Você deve ser <strong>administrador</strong> da equipe</li>
+                            <li>✓ A equipe deve estar <strong>ativa</strong></li>
+                            <li>✓ Não pode ter projetos ativos</li>
+                            <li>✓ Confirmação obrigatória</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Verificação de Projetos Ativos -->
+                {% if equipe.projetos.filter.ativo %}
+                    <div class="alert alert-danger">
+                        <h6><i class="bi bi-x-circle"></i> Não é possível excluir esta equipe!</h6>
+                        <p class="mb-0">Existem projetos ativos que precisam ser finalizados ou transferidos primeiro.</p>
+                        <ul class="mb-0 mt-2">
+                            {% for projeto in equipe.projetos.filter.ativo %}
+                                <li><strong>{{ projeto.titulo }}</strong> - {{ projeto.get_prioridade_display }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'projetos:detalhe-equipe' equipe.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    
+                    {% if not equipe.projetos.filter.ativo %}
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Tem certeza absoluta que deseja excluir esta equipe? Esta ação afetará todos os membros e projetos associados.')">
+                                <i class="bi bi-trash"></i> Confirmar Exclusão
+                            </button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-danger" disabled>
+                            <i class="bi bi-lock"></i> Não é possível excluir
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dicas de Segurança -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-check"></i> Dicas de Segurança
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-check-circle text-success"></i> Antes de Excluir:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right"></i> Finalize todos os projetos ativos</li>
+                            <li><i class="bi bi-arrow-right"></i> Notifique todos os membros</li>
+                            <li><i class="bi bi-arrow-right"></i> Faça backup dos dados importantes</li>
+                            <li><i class="bi bi-arrow-right"></i> Transfira projetos se necessário</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-lightbulb text-warning"></i> Alternativas:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right"></i> Arquivar temporariamente</li>
+                            <li><i class="bi bi-arrow-right"></i> Transferir membros para outra equipe</li>
+                            <li><i class="bi bi-arrow-right"></i> Reorganizar a estrutura</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

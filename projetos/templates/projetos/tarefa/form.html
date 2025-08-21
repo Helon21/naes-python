@@ -1,0 +1,205 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}Criar Tarefa - Sistema de Projetos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+        border: 1px solid #ced4da;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-plus-circle"></i> Criar Nova Tarefa
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.titulo.id_for_label }}" class="form-label">Título *</label>
+                            {{ form.titulo }}
+                            {% if form.titulo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.titulo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.descricao.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status *</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.status.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.prioridade.id_for_label }}" class="form-label">Prioridade *</label>
+                            {{ form.prioridade }}
+                            {% if form.prioridade.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.prioridade.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.data_limite.id_for_label }}" class="form-label">Data Limite</label>
+                            {{ form.data_limite }}
+                            {% if form.data_limite.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.data_limite.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Data e hora limite para conclusão da tarefa (opcional)</div>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.etiquetas.id_for_label }}" class="form-label">Etiquetas</label>
+                            {{ form.etiquetas }}
+                            {% if form.etiquetas.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.etiquetas.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Selecione as etiquetas que melhor descrevem esta tarefa</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'projetos:kanban-projeto' projeto_id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar ao Kanban
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Criar Tarefa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Informações sobre Tarefas -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Sobre Tarefas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-lightbulb text-warning"></i> Dicas</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right"></i> Use títulos descritivos</li>
+                            <li><i class="bi bi-arrow-right"></i> Detalhe bem a descrição</li>
+                            <li><i class="bi bi-arrow-right"></i> Defina prioridades adequadas</li>
+                            <li><i class="bi bi-arrow-right"></i> Estabeleça prazos realistas</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-gear text-primary"></i> Funcionalidades</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right"></i> Arrastar e soltar no Kanban</li>
+                            <li><i class="bi bi-arrow-right"></i> Sistema de comentários</li>
+                            <li><i class="bi bi-arrow-right"></i> Upload de arquivos</li>
+                            <li><i class="bi bi-arrow-right"></i> Atribuição de responsáveis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para definir status padrão se vindo do Kanban -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se há parâmetro de status na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusParam = urlParams.get('status');
+    
+    if (statusParam) {
+        const statusSelect = document.getElementById('id_status');
+        if (statusSelect) {
+            statusSelect.value = statusParam;
+        }
+    }
+    
+    // Configurar data mínima para data limite
+    const dataLimite = document.getElementById('id_data_limite');
+    if (dataLimite) {
+        const hoje = new Date();
+        const amanha = new Date(hoje);
+        amanha.setDate(hoje.getDate() + 1);
+        
+        const dataMinima = amanha.toISOString().slice(0, 16);
+        dataLimite.min = dataMinima;
+    }
+});
+</script>
+{% endblock %}

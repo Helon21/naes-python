@@ -1,0 +1,260 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}{{ tarefa.titulo }} - Detalhes da Tarefa{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'projetos:detalhe-equipe' tarefa.projeto.equipe.pk %}">{{ tarefa.projeto.equipe.nome }}</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'projetos:detalhe-projeto' tarefa.projeto.pk %}">{{ tarefa.projeto.titulo }}</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ tarefa.titulo }}</li>
+                    </ol>
+                </nav>
+                <h1><i class="bi bi-list-task"></i> {{ tarefa.titulo }}</h1>
+                {% if tarefa.descricao %}
+                    <p class="text-muted">{{ tarefa.descricao }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'projetos:kanban-projeto' tarefa.projeto.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Kanban
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informações da Tarefa -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Informações da Tarefa
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Título:</strong>
+                    <p class="mb-0">{{ tarefa.titulo }}</p>
+                </div>
+                
+                {% if tarefa.descricao %}
+                    <div class="mb-3">
+                        <strong>Descrição:</strong>
+                        <p class="mb-0">{{ tarefa.descricao }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Projeto:</strong>
+                    <p class="mb-0">{{ tarefa.projeto.titulo }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    <span class="badge" style="background-color: {{ tarefa.status.cor }}">
+                        {{ tarefa.status.nome }}
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Prioridade:</strong>
+                    <span class="badge bg-{{ tarefa.prioridade }}">
+                        {{ tarefa.get_prioridade_display }}
+                    </span>
+                </div>
+                
+                {% if tarefa.data_limite %}
+                    <div class="mb-3">
+                        <strong>Data Limite:</strong>
+                        <p class="mb-0">{{ tarefa.data_limite|date:"d/m/Y H:i" }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Criada em:</strong>
+                    <p class="mb-0">{{ tarefa.criada_em|date:"d/m/Y H:i" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Criada por:</strong>
+                    <p class="mb-0">{{ tarefa.criada_por.get_full_name|default:tarefa.criada_por.username }}</p>
+                </div>
+                
+                {% if tarefa.etiquetas.all %}
+                    <div class="mb-3">
+                        <strong>Etiquetas:</strong>
+                        <div class="mt-2">
+                            {% for etiqueta in tarefa.etiquetas.all %}
+                                <span class="badge" style="background-color: {{ etiqueta.cor }}">
+                                    {{ etiqueta.nome }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Atribuições -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-check"></i> Responsáveis
+                </h5>
+                {% if atribuicoes %}
+                    <form method="post" action="{% url 'projetos:remover-atribuicao' tarefa.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                onclick="return confirm('Tem certeza que deseja remover todas as atribuições desta tarefa?')">
+                            <i class="bi bi-trash"></i> Remover Todas
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if atribuicoes %}
+                    <div class="list-group list-group-flush mb-3">
+                        {% for atribuicao in atribuicoes %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ atribuicao.usuario.get_full_name|default:atribuicao.usuario.username }}</strong>
+                                    <br>
+                                    <small class="text-muted">Atribuído por {{ atribuicao.atribuida_por.username }}</small>
+                                </div>
+                                <small class="text-muted">{{ atribuicao.atribuida_em|date:"d/m/Y" }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Nenhum responsável atribuído.
+                    </p>
+                {% endif %}
+                
+                <!-- Formulário para atribuir tarefa -->
+                <hr>
+                <h6 class="mb-3"><i class="bi bi-person-plus"></i> Atribuir Tarefa</h6>
+                <form method="post" action="{% url 'projetos:atribuir-tarefa' tarefa.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="usuario_id" class="form-label">Selecionar Membro da Equipe</label>
+                        <select class="form-select" id="usuario_id" name="usuario_id" required>
+                            <option value="">Escolha um membro...</option>
+                            {% for membro in tarefa.projeto.equipe.membros.all %}
+                                <option value="{{ membro.usuario.id }}" 
+                                        {% if atribuicoes and atribuicoes.first.usuario.id == membro.usuario.id %}selected{% endif %}>
+                                    {{ membro.usuario.get_full_name|default:membro.usuario.username }} 
+                                    ({{ membro.get_papel_display }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Selecione um membro da equipe para atribuir esta tarefa</div>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-person-check"></i> Atribuir Tarefa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comentários -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-chat-dots"></i> Comentários
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Formulário para novo comentário -->
+                <form method="post" action="{% url 'projetos:adicionar-comentario' tarefa.pk %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="conteudo" class="form-label">Novo Comentário</label>
+                        <textarea class="form-control" id="conteudo" name="conteudo" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Adicionar Comentário
+                    </button>
+                </form>
+                
+                <!-- Lista de comentários -->
+                {% if comentarios %}
+                    <div class="list-group list-group-flush">
+                        {% for comentario in comentarios %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                {{ comentario.usuario.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ comentario.usuario.get_full_name|default:comentario.usuario.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ comentario.criado_em|date:"d/m/Y H:i" }}</small>
+                                            </div>
+                                        </div>
+                                        <p class="mb-0">{{ comentario.conteudo }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Nenhum comentário ainda. Seja o primeiro a comentar!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Anexos -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-paperclip"></i> Anexos
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if anexos %}
+                    <div class="list-group list-group-flush">
+                        {% for anexo in anexos %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark"></i>
+                                    <strong>{{ anexo.arquivo.name|slice:"7:" }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        Enviado por {{ anexo.usuario.username }} em {{ anexo.enviado_em|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                                <a href="{{ anexo.arquivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Nenhum anexo encontrado.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

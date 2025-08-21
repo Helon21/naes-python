@@ -1,0 +1,229 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Projetos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+            <a href="{% url 'projetos:criar-equipe' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nova Equipe
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_projetos }}</h4>
+                        <p class="card-text">Projetos Ativos</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-folder fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_tarefas }}</h4>
+                        <p class="card-text">Total de Tarefas</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-list-task fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ tarefas_concluidas }}</h4>
+                        <p class="card-text">Tarefas Concluídas</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ percentual_conclusao }}%</h4>
+                        <p class="card-text">Taxa de Conclusão</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-graph-up fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Equipes -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i> Minhas Equipes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if equipes %}
+                    <div class="list-group list-group-flush">
+                        {% for equipe in equipes %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ equipe.nome }}</h6>
+                                    <small class="text-muted">{{ equipe.descricao|truncatewords:10 }}</small>
+                                </div>
+                                <a href="{% url 'projetos:detalhe-equipe' equipe.pk %}" class="btn btn-sm btn-outline-primary">
+                                    Ver Detalhes
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Você ainda não participa de nenhuma equipe.
+                        <a href="{% url 'projetos:criar-equipe' %}">Crie uma equipe</a> para começar!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Projetos Ativos -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-folder"></i> Projetos Ativos
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if projetos_ativos %}
+                    <div class="list-group list-group-flush">
+                        {% for projeto in projetos_ativos %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ projeto.titulo }}</h6>
+                                    <small class="text-muted">{{ projeto.equipe.nome }}</small>
+                                    <br>
+                                    <span class="badge bg-{{ projeto.prioridade }}">
+                                        {{ projeto.get_prioridade_display }}
+                                    </span>
+                                </div>
+                                <a href="{% url 'projetos:kanban-projeto' projeto.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-kanban"></i> Kanban
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Nenhum projeto ativo encontrado.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tarefas Atribuídas -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-check"></i> Minhas Tarefas
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if tarefas_atribuidas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarefa</th>
+                                    <th>Projeto</th>
+                                    <th>Equipe</th>
+                                    <th>Status</th>
+                                    <th>Prioridade</th>
+                                    <th>Data Limite</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tarefa in tarefas_atribuidas %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ tarefa.titulo }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ tarefa.descricao|truncatewords:8 }}</small>
+                                        </td>
+                                        <td>{{ tarefa.projeto.titulo }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ tarefa.projeto.equipe.nome }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background-color: {{ tarefa.status.cor }}">
+                                                {{ tarefa.status.nome }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ tarefa.prioridade }}">
+                                                {{ tarefa.get_prioridade_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if tarefa.data_limite %}
+                                                {{ tarefa.data_limite|date:"d/m/Y H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'projetos:detalhe-tarefa' tarefa.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Nenhuma tarefa atribuída a você no momento.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

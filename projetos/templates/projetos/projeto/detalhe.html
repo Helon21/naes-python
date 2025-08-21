@@ -1,0 +1,243 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}{{ projeto.titulo }} - Detalhes do Projeto{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'projetos:detalhe-equipe' projeto.equipe.pk %}">{{ projeto.equipe.nome }}</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ projeto.titulo }}</li>
+                    </ol>
+                </nav>
+                <h1><i class="bi bi-folder"></i> {{ projeto.titulo }}</h1>
+                {% if projeto.descricao %}
+                    <p class="text-muted">{{ projeto.descricao }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'projetos:kanban-projeto' projeto.pk %}" class="btn btn-primary">
+                    <i class="bi bi-kanban"></i> Abrir Kanban
+                </a>
+                <a href="{% url 'projetos:criar-tarefa' projeto.pk %}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Nova Tarefa
+                </a>
+                <a href="{% url 'projetos:detalhe-equipe' projeto.equipe.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                {% for membro in projeto.equipe.membros.all %}
+                    {% if membro.usuario == request.user and membro.papel == 'admin' %}
+                        <a href="{% url 'projetos:excluir-projeto' projeto.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Excluir Projeto
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informações do Projeto -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Informações do Projeto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Título:</strong>
+                    <p class="mb-0">{{ projeto.titulo }}</p>
+                </div>
+                
+                {% if projeto.descricao %}
+                    <div class="mb-3">
+                        <strong>Descrição:</strong>
+                        <p class="mb-0">{{ projeto.descricao }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Equipe:</strong>
+                    <p class="mb-0">{{ projeto.equipe.nome }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Data de Início:</strong>
+                    <p class="mb-0">{{ projeto.data_inicio|date:"d/m/Y" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Data de Fim:</strong>
+                    <p class="mb-0">{{ projeto.data_fim|date:"d/m/Y" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Prioridade:</strong>
+                    <span class="badge bg-{{ projeto.prioridade }}">
+                        {{ projeto.get_prioridade_display }}
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Criado em:</strong>
+                    <p class="mb-0">{{ projeto.criado_em|date:"d/m/Y H:i" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Criado por:</strong>
+                    <p class="mb-0">{{ projeto.criado_por.get_full_name|default:projeto.criado_por.username }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    {% if projeto.ativo %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inativo</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Estatísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ tarefas.count }}</h4>
+                        <p class="text-muted mb-0">Total de Tarefas</p>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">
+                            {{ status_stats.Concluído|default:0 }}
+                        </h4>
+                        <p class="text-muted mb-0">Concluídas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tarefas do Projeto -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-task"></i> Tarefas do Projeto
+                </h5>
+                <a href="{% url 'projetos:criar-tarefa' projeto.pk %}" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus-circle"></i> Nova Tarefa
+                </a>
+            </div>
+            <div class="card-body">
+                {% if tarefas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarefa</th>
+                                    <th>Status</th>
+                                    <th>Prioridade</th>
+                                    <th>Data Limite</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tarefa in tarefas %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ tarefa.titulo }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ tarefa.descricao|truncatewords:10 }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background-color: {{ tarefa.status.cor }}">
+                                                {{ tarefa.status.nome }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ tarefa.prioridade }}">
+                                                {{ tarefa.get_prioridade_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if tarefa.data_limite %}
+                                                {{ tarefa.data_limite|date:"d/m/Y" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'projetos:detalhe-tarefa' tarefa.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-list-task display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhuma Tarefa</h5>
+                        <p class="text-muted">Este projeto ainda não possui tarefas.</p>
+                        <a href="{% url 'projetos:criar-tarefa' projeto.pk %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Criar Primeira Tarefa
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status do Projeto -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-columns-gap"></i> Status do Projeto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for status in status_list %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-0" style="border-left: 4px solid {{ status.cor }} !important;">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">{{ status.nome }}</h6>
+                                    <h3 class="text-primary">
+                                        {% for nome_status, count in status_stats.items %}
+                                            {% if nome_status == status.nome %}
+                                                {{ count }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </h3>
+                                    <small class="text-muted">tarefas</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

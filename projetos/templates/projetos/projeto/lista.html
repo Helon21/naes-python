@@ -1,0 +1,187 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}Projetos - Sistema de Projetos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-folder"></i> Meus Projetos</h1>
+            <a href="{% url 'projetos:criar-projeto' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Projeto
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if projetos %}
+    <div class="row">
+        {% for projeto in projetos %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-folder"></i> {{ projeto.titulo }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {% if projeto.descricao %}
+                                {{ projeto.descricao|truncatewords:20 }}
+                            {% else %}
+                                <span class="text-muted">Sem descrição</span>
+                            {% endif %}
+                        </p>
+                        
+                        <div class="mb-3">
+                            <strong>Equipe:</strong>
+                            <p class="mb-0">{{ projeto.equipe.nome }}</p>
+                        </div>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h6 class="text-primary mb-0">{{ projeto.tarefas.count }}</h6>
+                                    <small class="text-muted">Tarefas</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                                                 <h6 class="text-success mb-0">
+                                     {% with count=0 %}
+                                         {% for tarefa in projeto.tarefas.all %}
+                                             {% if tarefa.status.nome == 'Concluído' %}
+                                                 {% with count=count|add:1 %}{% endwith %}
+                                             {% endif %}
+                                         {% endfor %}
+                                         {{ count }}
+                                     {% endwith %}
+                                 </h6>
+                                <small class="text-muted">Concluídas</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Prioridade:</strong>
+                            <span class="badge bg-{{ projeto.prioridade }}">
+                                {{ projeto.get_prioridade_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Datas:</strong>
+                            <p class="mb-0">
+                                <small class="text-muted">
+                                    {{ projeto.data_inicio|date:"d/m/Y" }} - {{ projeto.data_fim|date:"d/m/Y" }}
+                                </small>
+                            </p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'projetos:kanban-projeto' projeto.pk %}" class="btn btn-outline-primary">
+                                <i class="bi bi-kanban"></i> Abrir Kanban
+                            </a>
+                            <a href="{% url 'projetos:detalhe-projeto' projeto.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-eye"></i> Ver Detalhes
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="bi bi-calendar"></i> Criado em {{ projeto.criado_em|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <i class="bi bi-folder display-1 text-muted mb-4"></i>
+                    <h3 class="text-muted">Nenhum Projeto Encontrado</h3>
+                    <p class="text-muted mb-4">
+                        Você ainda não possui projetos. Crie um projeto para começar a organizar suas tarefas!
+                    </p>
+                    <a href="{% url 'projetos:criar-projeto' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Criar Primeiro Projeto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Estatísticas Gerais -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Estatísticas dos Projetos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ projetos.count }}</h4>
+                            <p class="text-muted mb-0">Total de Projetos</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-success">
+                                {% with total_tarefas=0 %}
+                                    {% for projeto in projetos %}
+                                        {% with total_tarefas=total_tarefas|add:projeto.tarefas.count %}{% endwith %}
+                                    {% endfor %}
+                                    {{ total_tarefas }}
+                                {% endwith %}
+                            </h4>
+                            <p class="text-muted mb-0">Total de Tarefas</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-info">
+                                {% with total_equipes=0 %}
+                                    {% for projeto in projetos %}
+                                        {% if forloop.first %}
+                                            {% with total_equipes=1 %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ total_equipes }}
+                                {% endwith %}
+                            </h4>
+                            <p class="text-muted mb-0">Equipes Ativas</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">
+                            {% if projetos.count > 0 %}
+                                {% with total_tarefas=0 %}
+                                    {% for projeto in projetos %}
+                                        {% with total_tarefas=total_tarefas|add:projeto.tarefas.count %}{% endwith %}
+                                    {% endfor %}
+                                    {% if total_tarefas > 0 %}
+                                        {{ total_tarefas|floatformat:1 }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">Média de Tarefas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

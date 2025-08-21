@@ -1,0 +1,229 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}{{ equipe.nome }} - Detalhes da Equipe{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'projetos:lista-equipes' %}">Equipes</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ equipe.nome }}</li>
+                    </ol>
+                </nav>
+                <h1><i class="bi bi-people"></i> {{ equipe.nome }}</h1>
+                {% if equipe.descricao %}
+                    <p class="text-muted">{{ equipe.descricao }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'projetos:criar-projeto-equipe' equipe.pk %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Novo Projeto
+                </a>
+                <a href="{% url 'projetos:lista-equipes' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                {% for membro in equipe.membros.all %}
+                    {% if membro.usuario == request.user and membro.papel == 'admin' %}
+                        <a href="{% url 'projetos:excluir-equipe' equipe.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Excluir Equipe
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informações da Equipe -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Informações da Equipe
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Nome:</strong>
+                    <p class="mb-0">{{ equipe.nome }}</p>
+                </div>
+                
+                {% if equipe.descricao %}
+                    <div class="mb-3">
+                        <strong>Descrição:</strong>
+                        <p class="mb-0">{{ equipe.descricao }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Criada em:</strong>
+                    <p class="mb-0">{{ equipe.criada_em|date:"d/m/Y H:i" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Criada por:</strong>
+                    <p class="mb-0">{{ equipe.criada_por.get_full_name|default:equipe.criada_por.username }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    {% if equipe.ativa %}
+                        <span class="badge bg-success">Ativa</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inativa</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Estatísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ projetos.count }}</h4>
+                        <p class="text-muted mb-0">Projetos</p>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ membros.count }}</h4>
+                        <p class="text-muted mb-0">Membros</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Projetos da Equipe -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-folder"></i> Projetos da Equipe
+                </h5>
+                <a href="{% url 'projetos:criar-projeto-equipe' equipe.pk %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Novo Projeto
+                </a>
+            </div>
+            <div class="card-body">
+                {% if projetos %}
+                    <div class="row">
+                        {% for projeto in projetos %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ projeto.titulo }}</h6>
+                                        <p class="card-text small text-muted">
+                                            {{ projeto.descricao|truncatewords:15 }}
+                                        </p>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-{{ projeto.prioridade }}">
+                                                {{ projeto.get_prioridade_display }}
+                                            </span>
+                                            <small class="text-muted">
+                                                {{ projeto.criado_em|date:"d/m/Y" }}
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="d-grid">
+                                            <a href="{% url 'projetos:kanban-projeto' projeto.pk %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-kanban"></i> Abrir Kanban
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-folder display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum Projeto</h5>
+                        <p class="text-muted">Esta equipe ainda não possui projetos.</p>
+                        <a href="{% url 'projetos:criar-projeto-equipe' equipe.pk %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Criar Primeiro Projeto
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Membros da Equipe -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-badge"></i> Membros da Equipe
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if membros %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Usuário</th>
+                                    <th>Papel</th>
+                                    <th>Data de Entrada</th>
+                                    <th>Projetos Criados</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for membro in membros %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                    {{ membro.usuario.username|first|upper }}
+                                                </div>
+                                            </div>
+                                            <strong>{{ membro.usuario.get_full_name|default:membro.usuario.username }}</strong>
+                                            <br>
+                                            <small class="text-muted">@{{ membro.usuario.username }}</small>
+                                        </td>
+                                        <td>
+                                            {% if membro.papel == 'admin' %}
+                                                <span class="badge bg-danger">{{ membro.get_papel_display }}</span>
+                                            {% elif membro.papel == 'membro' %}
+                                                <span class="badge bg-primary">{{ membro.get_papel_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ membro.get_papel_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ membro.data_entrada|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ membro.usuario.projetos_criados.count }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        Nenhum membro encontrado nesta equipe.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'projetos/base.html' %}
+{% load static %}
+
+{% block title %}{{ projeto.titulo }} - Kanban{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kanban-column {
+        min-height: 500px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .kanban-column-header {
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        border-left: 4px solid;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .task-card {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        cursor: move;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .task-card.dragging {
+        opacity: 0.5;
+        transform: rotate(5deg);
+    }
+    
+    .priority-badge {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+    }
+    
+    .etiqueta {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+    
+    .add-task-btn {
+        width: 100%;
+        padding: 10px;
+        border: 2px dashed #dee2e6;
+        background-color: transparent;
+        color: #6c757d;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .add-task-btn:hover {
+        border-color: #007bff;
+        color: #007bff;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'projetos:detalhe-equipe' projeto.equipe.pk %}">{{ projeto.equipe.nome }}</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'projetos:detalhe-projeto' projeto.pk %}">{{ projeto.titulo }}</a>
+                        </li>
+                        <li class="breadcrumb-item active">Kanban</li>
+                    </ol>
+                </nav>
+                <h1><i class="bi bi-kanban"></i> {{ projeto.titulo }}</h1>
+                <p class="text-muted">{{ projeto.descricao }}</p>
+            </div>
+            <div>
+                <a href="{% url 'projetos:criar-tarefa' projeto.pk %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nova Tarefa
+                </a>
+                <a href="{% url 'projetos:detalhe-projeto' projeto.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-info-circle"></i> Detalhes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quadro Kanban -->
+<div class="row">
+    {% for status in status_list %}
+        <div class="col-md-3">
+            <div class="kanban-column">
+                <div class="kanban-column-header" style="border-left-color: {{ status.cor }}">
+                    <h5 class="mb-0">{{ status.nome }}</h5>
+                    <small class="text-muted">
+                        {{ projeto.tarefas.all|length }} tarefa{{ projeto.tarefas.all|length|pluralize }}
+                    </small>
+                </div>
+                
+                <div class="kanban-tasks" data-status-id="{{ status.id }}">
+                    {% for tarefa in projeto.tarefas.all %}
+                        {% if tarefa.status.id == status.id %}
+                            <div class="task-card" data-task-id="{{ tarefa.id }}" draggable="true">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">{{ tarefa.titulo }}</h6>
+                                    <span class="badge priority-badge bg-{{ tarefa.prioridade }}">
+                                        {{ tarefa.get_prioridade_display }}
+                                    </span>
+                                </div>
+                                
+                                <p class="text-muted small mb-2">
+                                    {{ tarefa.descricao|truncatewords:15 }}
+                                </p>
+                                
+                                {% if tarefa.etiquetas.all %}
+                                    <div class="mb-2">
+                                        {% for etiqueta in tarefa.etiquetas.all %}
+                                            <span class="etiqueta" style="background-color: {{ etiqueta.cor }}"></span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        {% if tarefa.data_limite %}
+                                            <i class="bi bi-calendar"></i> {{ tarefa.data_limite|date:"d/m" }}
+                                        {% endif %}
+                                    </small>
+                                    <a href="{% url 'projetos:detalhe-tarefa' tarefa.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <button class="add-task-btn" onclick="window.location.href='{% url 'projetos:criar-tarefa' projeto.pk %}?status={{ status.id }}'">
+                        <i class="bi bi-plus-circle"></i> Adicionar Tarefa
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const taskCards = document.querySelectorAll('.task-card');
+    const kanbanColumns = document.querySelectorAll('.kanban-tasks');
+    
+    // Configurar drag and drop
+    taskCards.forEach(card => {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+    });
+    
+    kanbanColumns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('drop', handleDrop);
+        column.addEventListener('dragenter', handleDragEnter);
+        column.addEventListener('dragleave', handleDragLeave);
+    });
+    
+    function handleDragStart(e) {
+        e.target.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+    }
+    
+    function handleDragEnd(e) {
+        e.target.classList.remove('dragging');
+    }
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+    
+    function handleDragEnter(e) {
+        e.preventDefault();
+        e.target.closest('.kanban-tasks').classList.add('drag-over');
+    }
+    
+    function handleDragLeave(e) {
+        e.target.closest('.kanban-tasks').classList.remove('drag-over');
+    }
+    
+    function handleDrop(e) {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('text/plain');
+        const newStatusId = e.target.closest('.kanban-tasks').dataset.statusId;
+        
+        // Mover a tarefa para a nova coluna
+        moveTask(taskId, newStatusId);
+        
+        // Remover classes de drag
+        document.querySelectorAll('.kanban-tasks').forEach(col => {
+            col.classList.remove('drag-over');
+        });
+    }
+    
+    function moveTask(taskId, newStatusId) {
+        // Encontrar a posição da tarefa na nova coluna
+        const newColumn = document.querySelector(`[data-status-id="${newStatusId}"]`);
+        const tasksInColumn = newColumn.querySelectorAll('.task-card');
+        const newOrder = tasksInColumn.length + 1;
+        
+        // Enviar requisição para o servidor
+        fetch('{% url "projetos:mover-tarefa" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                tarefa_id: taskId,
+                novo_status_id: newStatusId,
+                nova_ordem: newOrder
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recarregar a página para mostrar as mudanças
+                location.reload();
+            } else {
+                alert('Erro ao mover tarefa: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao mover tarefa');
+        });
+    }
+    
+    // Função para obter o token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}
