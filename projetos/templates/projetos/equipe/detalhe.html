@@ -23,19 +23,19 @@
                 {% endif %}
             </div>
             <div>
+                {% if user.perfil.tipo_usuario in 'admin,membro' %}
                 <a href="{% url 'projetos:criar-projeto-equipe' equipe.pk %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Novo Projeto
                 </a>
+                {% endif %}
                 <a href="{% url 'projetos:lista-equipes' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Voltar
                 </a>
-                {% for membro in equipe.membros.all %}
-                    {% if membro.usuario == request.user and membro.papel == 'admin' %}
-                        <a href="{% url 'projetos:excluir-equipe' equipe.pk %}" class="btn btn-outline-danger">
-                            <i class="bi bi-trash"></i> Excluir Equipe
-                        </a>
-                    {% endif %}
-                {% endfor %}
+                {% if user.perfil.tipo_usuario == 'admin' %}
+                    <a href="{% url 'projetos:excluir-equipe' equipe.pk %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Excluir Equipe
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>

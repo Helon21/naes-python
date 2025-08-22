@@ -9,9 +9,11 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+            {% if user.perfil.tipo_usuario == 'admin' %}
             <a href="{% url 'projetos:criar-equipe' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Nova Equipe
             </a>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -109,8 +111,12 @@
                     </div>
                 {% else %}
                     <p class="text-muted text-center py-3">
+                        {% if user.perfil.tipo_usuario == 'admin' %}
                         Você ainda não participa de nenhuma equipe.
                         <a href="{% url 'projetos:criar-equipe' %}">Crie uma equipe</a> para começar!
+                        {% else %}
+                        Você ainda não participa de nenhuma equipe. Entre em contato com um administrador.
+                        {% endif %}
                     </p>
                 {% endif %}
             </div>
@@ -146,7 +152,11 @@
                     </div>
                 {% else %}
                     <p class="text-muted text-center py-3">
-                        Nenhum projeto ativo encontrado.
+                        {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                        Nenhum projeto ativo encontrado. Crie um projeto para começar!
+                        {% else %}
+                        Nenhum projeto ativo encontrado. Entre em contato com um administrador ou membro.
+                        {% endif %}
                     </p>
                 {% endif %}
             </div>
@@ -219,7 +229,11 @@
                     </div>
                 {% else %}
                     <p class="text-muted text-center py-3">
-                        Nenhuma tarefa atribuída a você no momento.
+                        {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                        Nenhuma tarefa atribuída a você no momento. Crie tarefas para começar!
+                        {% else %}
+                        Nenhuma tarefa atribuída a você no momento. Entre em contato com um administrador ou membro.
+                        {% endif %}
                     </p>
                 {% endif %}
             </div>

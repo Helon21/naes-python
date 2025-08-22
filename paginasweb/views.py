@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# View que apenas renderiza uma página Web
 from django.views.generic import TemplateView
 
 # Create your views here.
@@ -12,13 +9,5 @@ class PaginaInicial(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["nome"] = "Rafael Zottesso"
+        context["nome"] = "Sistema Kanban"
         return context
-
-
-class SobreView(TemplateView):
-    template_name = "paginasweb/sobre.html"
-
-
-class ContatoView(TemplateView):
-    template_name = "paginasweb/contato.html"

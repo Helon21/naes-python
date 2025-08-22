@@ -40,7 +40,6 @@ INSTALLED_APPS = [
 
     # Ativar meus apps
     "paginasweb.apps.PaginaswebConfig",
-    "protocolos.apps.ProtocolosConfig",
     "usuario.apps.UsuarioConfig",
     "projetos.apps.ProjetosConfig",
 
@@ -154,6 +153,6 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Configuração de autenticação
 
-LOGIN_REDIRECT_URL = 'index'
+LOGIN_REDIRECT_URL = 'projetos:dashboard'
 LOGOUT_REDIRECT_URL = 'index'
 LOGIN_URL = 'login'

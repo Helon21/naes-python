@@ -17,6 +17,7 @@ from .models import (
     Equipe, Projeto, Tarefa, StatusTarefa, Etiqueta, 
     MembroEquipe, Atribuicao, Comentario, Anexo
 )
+from .mixins import AdminRequiredMixin, MembroRequiredMixin, VisualizadorRequiredMixin
 
 # Views para Equipes
 class EquipeListView(LoginRequiredMixin, ListView):
@@ -42,7 +43,7 @@ class EquipeDetailView(LoginRequiredMixin, DetailView):
         context['membros'] = self.object.membros.all()
         return context
 
-class EquipeCreateView(LoginRequiredMixin, CreateView):
+class EquipeCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
     model = Equipe
     template_name = 'projetos/equipe/form.html'
     fields = ['nome', 'descricao']
@@ -78,7 +79,7 @@ class EquipeCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Equipe criada com sucesso!')
         return response
 
-class EquipeDeleteView(LoginRequiredMixin, DeleteView):
+class EquipeDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
     model = Equipe
     template_name = 'projetos/equipe/confirmar_exclusao.html'
     success_url = reverse_lazy('projetos:dashboard')
@@ -139,7 +140,7 @@ class ProjetoDetailView(LoginRequiredMixin, DetailView):
             context['status_stats'][status.nome] = count
         return context
 
-class ProjetoCreateView(LoginRequiredMixin, CreateView):
+class ProjetoCreateView(LoginRequiredMixin, MembroRequiredMixin, CreateView):
     model = Projeto
     template_name = 'projetos/projeto/form.html'
     fields = ['titulo', 'descricao', 'data_inicio', 'data_fim', 'prioridade']
@@ -172,7 +173,7 @@ class ProjetoCreateView(LoginRequiredMixin, CreateView):
         context['equipe_id'] = self.kwargs.get('equipe_id')
         return context
 
-class ProjetoDeleteView(LoginRequiredMixin, DeleteView):
+class ProjetoDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
     model = Projeto
     template_name = 'projetos/projeto/confirmar_exclusao.html'
     
@@ -222,6 +223,10 @@ def mover_tarefa(request):
             if not tarefa.projeto.equipe.membros.filter(usuario=request.user).exists():
                 return JsonResponse({'success': False, 'error': 'Sem permissão'})
             
+            # Verifica se o usuário pode editar tarefas
+            if hasattr(request.user, 'perfil') and not request.user.perfil.pode_editar_tarefa():
+                return JsonResponse({'success': False, 'error': 'Sem permissão para editar tarefas'})
+            
             tarefa.status = novo_status
             tarefa.ordem = nova_ordem
             tarefa.save()
@@ -232,7 +237,7 @@ def mover_tarefa(request):
     
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
 
-class TarefaCreateView(LoginRequiredMixin, CreateView):
+class TarefaCreateView(LoginRequiredMixin, MembroRequiredMixin, CreateView):
     model = Tarefa
     template_name = 'projetos/tarefa/form.html'
     fields = ['titulo', 'descricao', 'status', 'prioridade', 'data_limite', 'etiquetas']

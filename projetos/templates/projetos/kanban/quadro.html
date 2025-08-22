@@ -94,9 +94,11 @@
                 <p class="text-muted">{{ projeto.descricao }}</p>
             </div>
             <div>
+                {% if user.perfil.tipo_usuario in 'admin,membro' %}
                 <a href="{% url 'projetos:criar-tarefa' projeto.pk %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Nova Tarefa
                 </a>
+                {% endif %}
                 <a href="{% url 'projetos:detalhe-projeto' projeto.pk %}" class="btn btn-outline-secondary">
                     <i class="bi bi-info-circle"></i> Detalhes
                 </a>
@@ -154,9 +156,11 @@
                         {% endif %}
                     {% endfor %}
                     
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
                     <button class="add-task-btn" onclick="window.location.href='{% url 'projetos:criar-tarefa' projeto.pk %}?status={{ status.id }}'">
                         <i class="bi bi-plus-circle"></i> Adicionar Tarefa
                     </button>
+                    {% endif %}
                 </div>
             </div>
         </div>

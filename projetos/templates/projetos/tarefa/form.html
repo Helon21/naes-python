@@ -80,9 +80,22 @@
                             {% endif %}
                         </div>
                         
+                        {% if user.perfil.tipo_usuario not in 'admin,membro' %}
+                        <div class="col-12 mb-3">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>Atenção:</strong> Apenas administradores e membros podem criar tarefas.
+                            </div>
+                        </div>
+                        {% endif %}
+                        
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.status.id_for_label }}" class="form-label">Status *</label>
+                            {% if user.perfil.tipo_usuario in 'admin,membro' %}
                             {{ form.status }}
+                            {% else %}
+                            <input type="text" class="form-control" value="{{ form.status.value|default:'A Fazer' }}" readonly>
+                            {% endif %}
                             {% if form.status.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.status.errors %}
@@ -94,7 +107,11 @@
                         
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.prioridade.id_for_label }}" class="form-label">Prioridade *</label>
+                            {% if user.perfil.tipo_usuario in 'admin,membro' %}
                             {{ form.prioridade }}
+                            {% else %}
+                            <input type="text" class="form-control" value="{{ form.prioridade.value|default:'Média' }}" readonly>
+                            {% endif %}
                             {% if form.prioridade.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.prioridade.errors %}
@@ -106,7 +123,11 @@
                         
                         <div class="col-md-12 mb-3">
                             <label for="{{ form.data_limite.id_for_label }}" class="form-label">Data Limite</label>
+                            {% if user.perfil.tipo_usuario in 'admin,membro' %}
                             {{ form.data_limite }}
+                            {% else %}
+                            <input type="text" class="form-control" value="{{ form.data_limite.value|default:'Não definida' }}" readonly>
+                            {% endif %}
                             {% if form.data_limite.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.data_limite.errors %}
@@ -119,7 +140,11 @@
                         
                         <div class="col-md-12 mb-3">
                             <label for="{{ form.etiquetas.id_for_label }}" class="form-label">Etiquetas</label>
+                            {% if user.perfil.tipo_usuario in 'admin,membro' %}
                             {{ form.etiquetas }}
+                            {% else %}
+                            <input type="text" class="form-control" value="Nenhuma etiqueta selecionada" readonly>
+                            {% endif %}
                             {% if form.etiquetas.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.etiquetas.errors %}
@@ -135,9 +160,15 @@
                         <a href="{% url 'projetos:kanban-projeto' projeto_id %}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Voltar ao Kanban
                         </a>
+                        {% if user.perfil.tipo_usuario in 'admin,membro' %}
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> Criar Tarefa
                         </button>
+                        {% else %}
+                        <button type="button" class="btn btn-secondary" disabled>
+                            <i class="bi bi-lock"></i> Sem Permissão
+                        </button>
+                        {% endif %}
                     </div>
                 </form>
             </div>

@@ -29,6 +29,11 @@
                 <a href="{% url 'projetos:kanban-projeto' tarefa.projeto.pk %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Voltar ao Kanban
                 </a>
+                {% if user.perfil.tipo_usuario == 'admin' %}
+                    <a href="#" class="btn btn-outline-danger" onclick="confirmarExclusao()">
+                        <i class="bi bi-trash"></i> Excluir Tarefa
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -40,7 +45,12 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-info-circle"></i> Informações da Tarefa
+                    <i class="bi bi-info-circle"></i> 
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                    Informações da Tarefa
+                    {% else %}
+                    Informações da Tarefa (Somente Visualização)
+                    {% endif %}
                 </h5>
             </div>
             <div class="card-body">
@@ -111,9 +121,14 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-person-check"></i> Responsáveis
+                    <i class="bi bi-person-check"></i> 
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                    Responsáveis
+                    {% else %}
+                    Responsáveis (Somente Visualização)
+                    {% endif %}
                 </h5>
-                {% if atribuicoes %}
+                {% if atribuicoes and user.perfil.tipo_usuario == 'admin' %}
                     <form method="post" action="{% url 'projetos:remover-atribuicao' tarefa.pk %}" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-danger" 
@@ -145,11 +160,19 @@
                 
                 <!-- Formulário para atribuir tarefa -->
                 <hr>
-                <h6 class="mb-3"><i class="bi bi-person-plus"></i> Atribuir Tarefa</h6>
+                <h6 class="mb-3">
+                    <i class="bi bi-person-plus"></i> 
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                    Atribuir Tarefa
+                    {% else %}
+                    Atribuir Tarefa (Somente Visualização)
+                    {% endif %}
+                </h6>
                 <form method="post" action="{% url 'projetos:atribuir-tarefa' tarefa.pk %}">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="usuario_id" class="form-label">Selecionar Membro da Equipe</label>
+                        {% if user.perfil.tipo_usuario in 'admin,membro' %}
                         <select class="form-select" id="usuario_id" name="usuario_id" required>
                             <option value="">Escolha um membro...</option>
                             {% for membro in tarefa.projeto.equipe.membros.all %}
@@ -160,11 +183,20 @@
                                 </option>
                             {% endfor %}
                         </select>
+                        {% else %}
+                        <input type="text" class="form-control" value="Sem permissão para atribuir" readonly>
+                        {% endif %}
                         <div class="form-text">Selecione um membro da equipe para atribuir esta tarefa</div>
                     </div>
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-person-check"></i> Atribuir Tarefa
                     </button>
+                    {% else %}
+                    <button type="button" class="btn btn-secondary" disabled>
+                        <i class="bi bi-lock"></i> Sem Permissão
+                    </button>
+                    {% endif %}
                 </form>
             </div>
         </div>
@@ -175,7 +207,12 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-chat-dots"></i> Comentários
+                    <i class="bi bi-chat-dots"></i> 
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                    Comentários
+                    {% else %}
+                    Comentários (Somente Visualização)
+                    {% endif %}
                 </h5>
             </div>
             <div class="card-body">
@@ -184,11 +221,21 @@
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="conteudo" class="form-label">Novo Comentário</label>
+                        {% if user.perfil.tipo_usuario in 'admin,membro' %}
                         <textarea class="form-control" id="conteudo" name="conteudo" rows="3" required></textarea>
+                        {% else %}
+                        <textarea class="form-control" id="conteudo" name="conteudo" rows="3" readonly placeholder="Sem permissão para comentar"></textarea>
+                        {% endif %}
                     </div>
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-send"></i> Adicionar Comentário
                     </button>
+                    {% else %}
+                    <button type="button" class="btn btn-secondary" disabled>
+                        <i class="bi bi-lock"></i> Sem Permissão
+                    </button>
+                    {% endif %}
                 </form>
                 
                 <!-- Lista de comentários -->
@@ -226,7 +273,12 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-paperclip"></i> Anexos
+                    <i class="bi bi-paperclip"></i> 
+                    {% if user.perfil.tipo_usuario in 'admin,membro' %}
+                    Anexos
+                    {% else %}
+                    Anexos (Somente Visualização)
+                    {% endif %}
                 </h5>
             </div>
             <div class="card-body">

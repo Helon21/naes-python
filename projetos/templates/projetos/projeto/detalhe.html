@@ -26,19 +26,19 @@
                 <a href="{% url 'projetos:kanban-projeto' projeto.pk %}" class="btn btn-primary">
                     <i class="bi bi-kanban"></i> Abrir Kanban
                 </a>
+                {% if user.perfil.tipo_usuario in 'admin,membro' %}
                 <a href="{% url 'projetos:criar-tarefa' projeto.pk %}" class="btn btn-success">
                     <i class="bi bi-plus-circle"></i> Nova Tarefa
                 </a>
+                {% endif %}
                 <a href="{% url 'projetos:detalhe-equipe' projeto.equipe.pk %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Voltar
                 </a>
-                {% for membro in projeto.equipe.membros.all %}
-                    {% if membro.usuario == request.user and membro.papel == 'admin' %}
-                        <a href="{% url 'projetos:excluir-projeto' projeto.pk %}" class="btn btn-outline-danger">
-                            <i class="bi bi-trash"></i> Excluir Projeto
-                        </a>
-                    {% endif %}
-                {% endfor %}
+                {% if user.perfil.tipo_usuario == 'admin' %}
+                    <a href="{% url 'projetos:excluir-projeto' projeto.pk %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Excluir Projeto
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>

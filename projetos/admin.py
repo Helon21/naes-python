@@ -6,9 +6,19 @@ from .models import (
 
 @admin.register(PerfilUsuario)
 class PerfilUsuarioAdmin(admin.ModelAdmin):
-    list_display = ['usuario', 'telefone', 'data_nascimento']
+    list_display = ['usuario', 'tipo_usuario', 'telefone', 'data_nascimento']
     search_fields = ['usuario__username', 'usuario__first_name', 'usuario__last_name']
-    list_filter = ['data_nascimento']
+    list_filter = ['tipo_usuario', 'data_nascimento']
+    readonly_fields = ['data_nascimento']
+    
+    fieldsets = (
+        ('Informações do Usuário', {
+            'fields': ('usuario', 'tipo_usuario')
+        }),
+        ('Informações Pessoais', {
+            'fields': ('bio', 'avatar', 'telefone', 'data_nascimento')
+        }),
+    )
 
 @admin.register(Equipe)
 class EquipeAdmin(admin.ModelAdmin):
