@@ -8,7 +8,9 @@ urlpatterns = [
         template_name = "usuario/login.html",
         extra_context={"titulo": "Autenticação"}), name="login"),
     
-    path("logout/", LogoutView.as_view(), name="logout"),
+    path("logout/", LogoutView.as_view(
+        http_method_names=['get', 'post']
+    ), name="logout"),
     
     path("alterar-senha/", PasswordChangeView.as_view(
         template_name="usuario/password_change.html",

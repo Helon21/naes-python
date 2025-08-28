@@ -9,11 +9,7 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1><i class="bi bi-people"></i> Minhas Equipes</h1>
-            {% if user.perfil.tipo_usuario == 'admin' %}
-            <a href="{% url 'projetos:criar-equipe' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Nova Equipe
-            </a>
-            {% endif %}
+
         </div>
     </div>
 </div>
@@ -54,11 +50,7 @@
                             <a href="{% url 'projetos:detalhe-equipe' equipe.pk %}" class="btn btn-outline-primary">
                                 <i class="bi bi-eye"></i> Ver Detalhes
                             </a>
-                            {% if user.perfil.tipo_usuario in 'admin,membro' %}
-                            <a href="{% url 'projetos:criar-projeto-equipe' equipe.pk %}" class="btn btn-outline-success">
-                                <i class="bi bi-plus-circle"></i> Novo Projeto
-                            </a>
-                            {% endif %}
+
                         </div>
                     </div>
                     <div class="card-footer text-muted">
@@ -84,13 +76,7 @@
                         Você ainda não participa de nenhuma equipe. Entre em contato com um administrador para ser adicionado a uma equipe.
                         {% endif %}
                     </p>
-                    {% if user.perfil.tipo_usuario == 'admin' %}
-                    <a href="{% url 'projetos:criar-equipe' %}" class="btn btn-primary btn-lg">
-                        <i class="bi bi-plus-circle"></i> Criar Primeira Equipe
-                    </a>
-                    {% else %}
                     <p class="text-muted">Entre em contato com um administrador para ser adicionado a uma equipe.</p>
-                    {% endif %}
                 </div>
             </div>
         </div>

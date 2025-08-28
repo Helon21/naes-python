@@ -1,0 +1,146 @@
+{% extends "projetos/base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle text-primary"></i> {{ titulo }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.nome.id_for_label }}" class="form-label">
+                                {{ form.nome.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nome }}
+                            {% if form.nome.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.nome.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if form.nome.help_text %}
+                                <div class="form-text">{{ form.nome.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.descricao.id_for_label }}" class="form-label">
+                                {{ form.descricao.label }}
+                            </label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.descricao.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if form.descricao.help_text %}
+                                <div class="form-text">{{ form.descricao.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.ativa }}
+                                <label class="form-check-label" for="{{ form.ativa.id_for_label }}">
+                                    {{ form.ativa.label }}
+                                </label>
+                            </div>
+                            {% if form.ativa.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.ativa.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Marque esta opção para ativar a equipe imediatamente após a criação
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Dica:</strong> Após criar a equipe, você poderá:
+                            <ul class="mb-0 mt-2">
+                                <li>Adicionar membros à equipe</li>
+                                <li>Criar projetos associados à equipe</li>
+                                <li>Gerenciar permissões dos membros</li>
+                                <li>Configurar tarefas e prazos</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'projetos:admin-equipes' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Criar Equipe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control, .form-select, textarea {
+        border-radius: 0.375rem;
+        border: 1px solid #ced4da;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control:focus, .form-select:focus, textarea:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-check-input {
+        margin-top: 0.25rem;
+        margin-left: 0;
+    }
+    
+    .form-check-label {
+        margin-left: 0.5rem;
+    }
+    
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+    
+    .form-text {
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #6c757d;
+    }
+    
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+</style>
+{% endblock %}

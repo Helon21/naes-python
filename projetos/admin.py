@@ -35,9 +35,8 @@ class MembroEquipeAdmin(admin.ModelAdmin):
 
 @admin.register(StatusTarefa)
 class StatusTarefaAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'equipe', 'ordem', 'cor']
-    list_filter = ['equipe']
-    ordering = ['equipe', 'ordem']
+    list_display = ['nome', 'ordem', 'cor']
+    ordering = ['ordem']
 
 @admin.register(Etiqueta)
 class EtiquetaAdmin(admin.ModelAdmin):

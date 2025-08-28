@@ -1,7 +1,7 @@
 {% extends 'projetos/base.html' %}
 {% load static %}
 
-{% block title %}Confirmar Exclusão - {{ equipe.nome }}{% endblock %}
+{% block title %}Confirmar Inativação - {{ equipe.nome }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -9,14 +9,14 @@
         <div class="card border-danger">
             <div class="card-header bg-danger text-white">
                 <h4 class="card-title mb-0">
-                    <i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão da Equipe
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Inativação da Equipe
                 </h4>
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
                     <i class="bi bi-exclamation-triangle display-1 text-danger mb-3"></i>
                     <h5 class="text-danger">Atenção!</h5>
-                    <p class="lead">Você está prestes a excluir a equipe:</p>
+                    <p class="lead">Você está prestes a inativar a equipe:</p>
                     <h4 class="text-dark">{{ equipe.nome }}</h4>
                 </div>
                 
@@ -24,8 +24,9 @@
                     <h6><i class="bi bi-info-circle"></i> O que acontecerá:</h6>
                     <ul class="mb-0">
                         <li>A equipe será marcada como <strong>inativa</strong></li>
-                        <li>Todos os projetos da equipe serão afetados</li>
-                        <li>Os membros perderão acesso à equipe</li>
+                        <li>Os projetos ativos continuarão funcionando normalmente</li>
+                        <li>Novos projetos não poderão ser criados nesta equipe</li>
+                        <li>Os membros manterão acesso aos projetos existentes</li>
                         <li>Esta ação pode ser revertida por um administrador</li>
                     </ul>
                 </div>
@@ -58,11 +59,11 @@
                     </div>
                 </div>
                 
-                <!-- Verificação de Projetos Ativos -->
+                <!-- Informação sobre Projetos Ativos -->
                 {% if equipe.projetos.filter.ativo %}
-                    <div class="alert alert-danger">
-                        <h6><i class="bi bi-x-circle"></i> Não é possível excluir esta equipe!</h6>
-                        <p class="mb-0">Existem projetos ativos que precisam ser finalizados ou transferidos primeiro.</p>
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Projetos Ativos Encontrados</h6>
+                        <p class="mb-0">Esta equipe possui projetos ativos que continuarão funcionando normalmente após a inativação.</p>
                         <ul class="mb-0 mt-2">
                             {% for projeto in equipe.projetos.filter.ativo %}
                                 <li><strong>{{ projeto.titulo }}</strong> - {{ projeto.get_prioridade_display }}</li>
@@ -78,19 +79,13 @@
                         <i class="bi bi-arrow-left"></i> Cancelar
                     </a>
                     
-                    {% if not equipe.projetos.filter.ativo %}
-                        <form method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger" 
-                                    onclick="return confirm('Tem certeza absoluta que deseja excluir esta equipe? Esta ação afetará todos os membros e projetos associados.')">
-                                <i class="bi bi-trash"></i> Confirmar Exclusão
-                            </button>
-                        </form>
-                    {% else %}
-                        <button class="btn btn-danger" disabled>
-                            <i class="bi bi-lock"></i> Não é possível excluir
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Tem certeza absoluta que deseja inativar esta equipe? Os projetos ativos continuarão funcionando, mas novos projetos não poderão ser criados.')">
+                            <i class="bi bi-pause-circle"></i> Confirmar Inativação
                         </button>
-                    {% endif %}
+                    </form>
                 </div>
             </div>
         </div>
@@ -105,19 +100,19 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6><i class="bi bi-check-circle text-success"></i> Antes de Excluir:</h6>
+                        <h6><i class="bi bi-check-circle text-success"></i> Antes de Inativar:</h6>
                         <ul class="list-unstyled">
-                            <li><i class="bi bi-arrow-right"></i> Finalize todos os projetos ativos</li>
                             <li><i class="bi bi-arrow-right"></i> Notifique todos os membros</li>
-                            <li><i class="bi bi-arrow-right"></i> Faça backup dos dados importantes</li>
-                            <li><i class="bi bi-arrow-right"></i> Transfira projetos se necessário</li>
+                            <li><i class="bi bi-arrow-right"></i> Verifique se há projetos em andamento</li>
+                            <li><i class="bi bi-arrow-right"></i> Considere o impacto nos membros</li>
+                            <li><i class="bi bi-arrow-right"></i> Planeje a reativação se necessário</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
                         <h6><i class="bi bi-lightbulb text-warning"></i> Alternativas:</h6>
                         <ul class="list-unstyled">
-                            <li><i class="bi bi-arrow-right"></i> Arquivar temporariamente</li>
-                            <li><i class="bi bi-arrow-right"></i> Transferir membros para outra equipe</li>
+                            <li><i class="bi bi-arrow-right"></i> Inativar temporariamente</li>
+                            <li><i class="bi bi-arrow-right"></i> Manter equipe ativa com menos membros</li>
                             <li><i class="bi bi-arrow-right"></i> Reorganizar a estrutura</li>
                         </ul>
                     </div>

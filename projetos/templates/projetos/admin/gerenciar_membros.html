@@ -1,0 +1,223 @@
+{% extends "projetos/base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="bi bi-people text-primary"></i> {{ titulo }}
+                </h1>
+                <a href="{% url 'projetos:admin-equipes' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar às Equipes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações da Equipe -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ equipe.nome }}</h5>
+                    <p class="card-text">{{ equipe.descricao|default:"Sem descrição" }}</p>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Status:</small>
+                            {% if equipe.ativa %}
+                                <span class="badge bg-success">Ativa</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inativa</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Membros:</small>
+                            <span class="badge bg-info">{{ equipe.membros.count }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Criada em:</small>
+                            <span>{{ equipe.criada_em|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Criada por:</small>
+                            <span>{{ equipe.criada_por.username }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Adicionar Novos Membros -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-person-plus"></i> Adicionar Novos Membros
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if usuarios_disponiveis %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="adicionar_membro">
+                            
+                            <div class="mb-3">
+                                <label for="usuario_id" class="form-label">Selecionar Usuário:</label>
+                                <select class="form-select" id="usuario_id" name="usuario_id" required>
+                                    <option value="">Escolha um usuário...</option>
+                                    {% for usuario in usuarios_disponiveis %}
+                                        <option value="{{ usuario.id }}">
+                                            {{ usuario.get_full_name|default:usuario.username }} 
+                                            ({{ usuario.username }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="papel" class="form-label">Papel na Equipe:</label>
+                                <select class="form-select" id="papel" name="papel" required>
+                                    {% for valor, nome in papel_choices %}
+                                        <option value="{{ valor }}" {% if valor == 'membro' %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Adicionar à Equipe
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle text-success display-4"></i>
+                            <p class="text-muted mt-2">Todos os usuários já são membros desta equipe!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Membros Atuais -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-people-fill"></i> Membros Atuais ({{ membros_equipe.count }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if membros_equipe %}
+                        <div class="list-group">
+                            {% for membro in membros_equipe %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ membro.usuario.get_full_name|default:membro.usuario.username }}</h6>
+                                        <small class="text-muted">@{{ membro.usuario.username }}</small>
+                                        <br>
+                                        {% if membro.papel == 'admin' %}
+                                            <span class="badge bg-danger">Administrador</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Membro</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="btn-group" role="group">
+                                        <!-- Alterar Papel -->
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-gear"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><h6 class="dropdown-header">Alterar Papel</h6></li>
+                                                {% for valor, nome in papel_choices %}
+                                                    {% if valor != membro.papel %}
+                                                        <li>
+                                                            <form method="post" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="alterar_papel">
+                                                                <input type="hidden" name="membro_id" value="{{ membro.id }}">
+                                                                <input type="hidden" name="novo_papel" value="{{ valor }}">
+                                                                <button type="submit" class="dropdown-item">
+                                                                    {{ nome }}
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        
+                                        <!-- Remover Membro -->
+                                        {% if membro.usuario != equipe.criada_por %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="confirmarRemocao({{ membro.id }}, '{{ membro.usuario.username }}')">
+                                                <i class="bi bi-person-x"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled 
+                                                    title="Criador da equipe não pode ser removido">
+                                                <i class="bi bi-shield-lock"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-people text-muted display-4"></i>
+                            <p class="text-muted mt-2">Nenhum membro adicionado ainda.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Remoção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remover_membro">
+                    <input type="hidden" name="membro_id" id="membro_id_remover">
+                    <button type="submit" class="btn btn-danger">Confirmar Remoção</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarRemocao(membroId, nomeUsuario) {
+    const message = `Tem certeza que deseja remover o usuário "${nomeUsuario}" da equipe?`;
+    
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('membro_id_remover').value = membroId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

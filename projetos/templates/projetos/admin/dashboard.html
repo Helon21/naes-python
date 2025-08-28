@@ -1,0 +1,168 @@
+{% extends "projetos/base.html" %}
+
+{% block title %}Dashboard Administrativo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="bi bi-shield-check text-primary"></i> Dashboard Administrativo
+            </h1>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total de Usuários</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_usuarios }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total de Equipes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_equipes }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total de Projetos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_projetos }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-folder fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total de Tarefas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_tarefas }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-list-task fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Usuários por Tipo -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Usuários por Tipo</h6>
+                </div>
+                <div class="card-body">
+                    {% for tipo, quantidade in usuarios_por_tipo.items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">{{ tipo }}</span>
+                        <span class="badge bg-primary">{{ quantidade }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Ações Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'projetos:admin-criar-usuario' %}" class="btn btn-primary">
+                            <i class="bi bi-person-plus"></i> Criar Novo Usuário
+                        </a>
+                        <a href="{% url 'projetos:admin-criar-equipe' %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Criar Nova Equipe
+                        </a>
+                        <a href="{% url 'projetos:admin-usuarios' %}" class="btn btn-info">
+                            <i class="bi bi-people"></i> Gerenciar Usuários
+                        </a>
+                        <a href="{% url 'projetos:admin-equipes' %}" class="btn btn-warning">
+                            <i class="bi bi-building"></i> Gerenciar Equipes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipes Ativas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Equipes Ativas</h6>
+                </div>
+                <div class="card-body">
+                    {% if equipes_ativas %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Nome da Equipe</th>
+                                    <th>Descrição</th>
+                                    <th>Membros</th>
+                                    <th>Data de Criação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for equipe in equipes_ativas %}
+                                <tr>
+                                    <td>{{ equipe.nome }}</td>
+                                    <td>{{ equipe.descricao|truncatewords:10 }}</td>
+                                    <td>{{ equipe.membros.count }}</td>
+                                    <td>{{ equipe.data_criacao|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhuma equipe ativa encontrada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

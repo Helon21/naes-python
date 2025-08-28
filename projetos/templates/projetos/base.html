@@ -46,12 +46,31 @@
                         </a>
                     </li>
                     {% if user.perfil.tipo_usuario == 'admin' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'projetos:criar-equipe' %}">
-                            <i class="bi bi-plus-circle"></i> Nova Equipe
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-shield-check"></i> Admin
                         </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'projetos:admin-dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard Admin
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'projetos:admin-usuarios' %}">
+                                <i class="bi bi-people"></i> Gerenciar Usuários
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'projetos:admin-equipes' %}">
+                                <i class="bi bi-building"></i> Gerenciar Equipes
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'projetos:admin-criar-usuario' %}">
+                                <i class="bi bi-person-plus"></i> Criar Usuário
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'projetos:admin-criar-equipe' %}">
+                                <i class="bi bi-plus-circle"></i> Criar Equipe
+                            </a></li>
+                        </ul>
                     </li>
                     {% endif %}
+
                 </ul>
                 
                 <ul class="navbar-nav">
@@ -61,9 +80,14 @@
                                 <i class="bi bi-person-circle"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="bi bi-box-arrow-right"></i> Sair
-                                </a></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item" style="background: none; border: none; width: 100%; text-align: left; padding: 0.25rem 1rem;">
+                                            <i class="bi bi-box-arrow-right"></i> Sair
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
                     {% else %}

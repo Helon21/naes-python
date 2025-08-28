@@ -7,7 +7,6 @@ class PerfilUsuario(models.Model):
     TIPO_USUARIO_CHOICES = [
         ('admin', 'Administrador'),
         ('membro', 'Membro'),
-        ('visualizador', 'Visualizador'),
     ]
     
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name="perfil")
@@ -64,7 +63,6 @@ class MembroEquipe(models.Model):
     PAPEIS_CHOICES = [
         ('admin', 'Administrador'),
         ('membro', 'Membro'),
-        ('visualizador', 'Visualizador'),
     ]
     
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="membro_equipes")
@@ -83,17 +81,16 @@ class MembroEquipe(models.Model):
 class StatusTarefa(models.Model):
     nome = models.CharField(max_length=50, verbose_name="Nome do Status")
     cor = models.CharField(max_length=7, default="#007bff", verbose_name="Cor (Hex)")
-    ordem = models.PositiveIntegerField(unique=True, verbose_name="Ordem")
-    equipe = models.ForeignKey(Equipe, on_delete=models.CASCADE, related_name="status_tarefas")
+    ordem = models.PositiveIntegerField(verbose_name="Ordem")
     
     def __str__(self):
-        return f"{self.nome} - {self.equipe.nome}"
+        return f"{self.nome}"
     
     class Meta:
         verbose_name = "Status da Tarefa"
         verbose_name_plural = "Status das Tarefas"
         ordering = ["ordem"]
-        unique_together = ['ordem', 'equipe']
+        unique_together = ['nome']
 
 class Etiqueta(models.Model):
     nome = models.CharField(max_length=50, verbose_name="Nome da Etiqueta")
