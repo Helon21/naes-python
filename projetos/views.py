@@ -649,3 +649,33 @@ def admin_excluir_equipe(request, equipe_id):
         'success': True,
         'message': f'Equipe "{nome_equipe}" foi excluída permanentemente com sucesso! {membros_removidos} membro(s) foram removidos automaticamente.'
     })
+
+@login_required
+def admin_toggle_user_status(request, user_id):
+    """Ativar/Desativar usuário via AJAX (apenas para admins)"""
+    if not hasattr(request.user, 'perfil') or request.user.perfil.tipo_usuario != 'admin':
+        return JsonResponse({'success': False, 'error': 'Acesso negado. Apenas administradores podem acessar esta área.'})
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Usuário não encontrado'})
+    
+    # Não permitir desativar a si mesmo
+    if user == request.user:
+        return JsonResponse({'success': False, 'error': 'Você não pode desativar sua própria conta!'})
+    
+    # Alternar status
+    user.is_active = not user.is_active
+    user.save()
+    
+    novo_status = 'ativado' if user.is_active else 'desativado'
+    
+    return JsonResponse({
+        'success': True,
+        'message': f'Usuário "{user.username}" foi {novo_status} com sucesso!',
+        'novo_status': user.is_active
+    })

@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 
 class AdminRequiredMixin(UserPassesTestMixin):
-    """Mixin para verificar se o usuário é administrador"""
     
     def test_func(self):
         if hasattr(self.request.user, 'perfil'):
@@ -16,7 +15,6 @@ class AdminRequiredMixin(UserPassesTestMixin):
         return redirect('projetos:dashboard')
 
 class MembroRequiredMixin(UserPassesTestMixin):
-    """Mixin para verificar se o usuário é membro ou admin"""
     
     def test_func(self):
         if hasattr(self.request.user, 'perfil'):

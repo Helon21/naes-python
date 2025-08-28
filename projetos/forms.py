@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from .models import PerfilUsuario, Equipe
 
 class AdminUserCreationForm(UserCreationForm):
-    """Formulário para administradores criarem usuários"""
     tipo_usuario = forms.ChoiceField(
         choices=PerfilUsuario.TIPO_USUARIO_CHOICES,
         label='Tipo de Usuário',

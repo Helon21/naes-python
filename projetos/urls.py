@@ -37,4 +37,5 @@ urlpatterns = [
     path('admin-equipes/<int:equipe_id>/membros/', views.admin_gerenciar_membros_equipe, name='admin-gerenciar-membros'),
     path('admin-equipes/<int:equipe_id>/toggle-status/', views.admin_toggle_equipe_status, name='admin-toggle-equipe-status'),
     path('admin-equipes/<int:equipe_id>/excluir/', views.admin_excluir_equipe, name='admin-excluir-equipe'),
+    path('admin-usuarios/<int:user_id>/toggle-status/', views.admin_toggle_user_status, name='admin-toggle-user-status'),
 ]

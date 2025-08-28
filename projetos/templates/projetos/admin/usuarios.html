@@ -3,6 +3,7 @@
 {% block title %}Gerenciar Usuários{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -150,6 +151,9 @@
     </div>
 </div>
 
+<!-- Container para Alertas -->
+<div id="alertContainer" class="alert-container"></div>
+
 <!-- Modal de Confirmação -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
     <div class="modal-dialog">
@@ -170,21 +174,104 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.alert {
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
+// Função para mostrar alertas
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertId = 'alert-' + Date.now();
+    
+    const alertHtml = `
+        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    alertContainer.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-remover após 5 segundos
+    setTimeout(() => {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
 function toggleUserStatus(userId, activate) {
     const action = activate ? 'ativar' : 'desativar';
     const message = `Tem certeza que deseja ${action} este usuário?`;
     
     document.getElementById('confirmMessage').textContent = message;
     document.getElementById('confirmButton').onclick = function() {
-        // Aqui você pode implementar a lógica para ativar/desativar usuários
-        // Por enquanto, apenas fecha o modal
+        // Fechar modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
         modal.hide();
         
-        // Mostra uma mensagem de sucesso
-        alert(`Usuário ${action}do com sucesso!`);
+        // Mostrar loading
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Processando...';
+        button.disabled = true;
+        
+        // Fazer requisição AJAX
+        fetch(`/projetos/admin-usuarios/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensagem de sucesso
+                showAlert('success', data.message);
+                
+                // Recarregar a página para atualizar o status
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert('danger', data.error);
+                button.innerHTML = originalContent;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('danger', 'Erro ao processar a solicitação. Tente novamente.');
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        });
     };
     
     const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
