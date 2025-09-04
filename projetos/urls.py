@@ -24,6 +24,8 @@ urlpatterns = [
     path('mover-tarefa/', views.mover_tarefa, name='mover-tarefa'),
     
     path('tarefas/<int:tarefa_id>/comentarios/', views.adicionar_comentario, name='adicionar-comentario'),
+    path('tarefas/<int:tarefa_id>/anexos/adicionar/', views.adicionar_anexo, name='adicionar-anexo'),
+    path('tarefas/<int:tarefa_id>/anexos/<int:anexo_id>/remover/', views.remover_anexo, name='remover-anexo'),
     
     path('tarefas/<int:tarefa_id>/atribuir/', views.atribuir_tarefa, name='atribuir-tarefa'),
     path('tarefas/<int:tarefa_id>/remover-atribuicao/', views.remover_atribuicao, name='remover-atribuicao'),

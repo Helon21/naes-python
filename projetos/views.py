@@ -18,6 +18,7 @@ from .models import (
     MembroEquipe, Atribuicao, Comentario, Anexo, PerfilUsuario
 )
 from .mixins import AdminRequiredMixin, MembroRequiredMixin
+from .forms import TarefaForm
 
 class EquipeListView(LoginRequiredMixin, ListView):
     model = Equipe
@@ -190,8 +191,32 @@ class KanbanView(LoginRequiredMixin, DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status_list'] = StatusTarefa.objects.all()
+        status_list = list(StatusTarefa.objects.all())
+        context['status_list'] = status_list
         context['etiquetas'] = self.object.equipe.etiquetas.all()
+
+        # Pré-carregar tarefas e agrupar por status
+        tarefas = list(self.object.tarefas.select_related('status').order_by('ordem', '-criada_em'))
+        tarefas_por_status = {}
+        for tarefa in tarefas:
+            tarefas_por_status.setdefault(tarefa.status_id, []).append(tarefa)
+
+        # Contagem por status
+        contagens = {
+            s_id: count for s_id, count in
+            self.object.tarefas.values_list('status_id').order_by().annotate(Count('status_id'))
+        }
+
+        # Montar estrutura de colunas para o template
+        colunas = []
+        for status in status_list:
+            colunas.append({
+                'status': status,
+                'tarefas': tarefas_por_status.get(status.id, []),
+                'count': contagens.get(status.id, 0),
+            })
+
+        context['colunas'] = colunas
         return context
 
 @login_required
@@ -226,7 +251,7 @@ def mover_tarefa(request):
 class TarefaCreateView(LoginRequiredMixin, MembroRequiredMixin, CreateView):
     model = Tarefa
     template_name = 'projetos/tarefa/form.html'
-    fields = ['titulo', 'descricao', 'status', 'prioridade', 'data_limite', 'etiquetas']
+    form_class = TarefaForm
     
     def get_success_url(self):
         return reverse('projetos:kanban-projeto', kwargs={'pk': self.kwargs['projeto_id']})
@@ -234,14 +259,41 @@ class TarefaCreateView(LoginRequiredMixin, MembroRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.projeto_id = self.kwargs['projeto_id']
         form.instance.criada_por = self.request.user
+        # Validação: data limite deve ser maior que o dia atual
+        if form.instance.data_limite is not None:
+            hoje = timezone.localdate()
+            try:
+                data_limite_date = form.instance.data_limite.astimezone(timezone.get_current_timezone()).date()
+            except Exception:
+                data_limite_date = form.instance.data_limite.date()
+            if data_limite_date <= hoje:
+                messages.error(self.request, 'A data limite deve ser maior que o dia de hoje.')
+                form.add_error('data_limite', 'A data limite deve ser maior que o dia de hoje.')
+                return self.form_invalid(form)
         
         ultima_ordem = Tarefa.objects.filter(
             status=form.instance.status
         ).aggregate(ultima=Max('ordem'))['ultima'] or 0
         form.instance.ordem = ultima_ordem + 1
         
+        response = super().form_valid(form)
+        # Salvar anexos
+        arquivos = self.request.FILES.getlist('anexos')
+        tipos_permitidos = ['application/pdf', 'image/png', 'image/jpeg']
+        for arquivo in arquivos:
+            if arquivo.content_type not in tipos_permitidos:
+                messages.warning(self.request, f"Anexo '{arquivo.name}' ignorado: formato não permitido.")
+                continue
+            Anexo.objects.create(
+                tarefa=self.object,
+                usuario=self.request.user,
+                arquivo=arquivo,
+                nome_original=arquivo.name,
+                tamanho=arquivo.size,
+                tipo_mime=arquivo.content_type,
+            )
         messages.success(self.request, 'Tarefa criada com sucesso!')
-        return super().form_valid(form)
+        return response
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -252,7 +304,7 @@ class TarefaCreateView(LoginRequiredMixin, MembroRequiredMixin, CreateView):
         
         context['status_list'] = StatusTarefa.objects.all()
 
-        context['etiquetas'] = projeto.equipe.etiquetas.all()
+        # Não exibir etiquetas no formulário de criação
         
         return context
 
@@ -321,6 +373,54 @@ def remover_atribuicao(request, tarefa_id):
         
         messages.success(request, f'Atribuições removidas da tarefa "{tarefa.titulo}"!')
     
+    return redirect('projetos:detalhe-tarefa', pk=tarefa_id)
+
+@login_required
+def remover_anexo(request, tarefa_id, anexo_id):
+    if request.method == 'POST':
+        tarefa = get_object_or_404(Tarefa, id=tarefa_id)
+        if not hasattr(request.user, 'perfil') or request.user.perfil.tipo_usuario not in ['admin', 'membro']:
+            messages.error(request, 'Sem permissão para remover anexos.')
+            return redirect('projetos:detalhe-tarefa', pk=tarefa_id)
+        try:
+            anexo = Anexo.objects.get(id=anexo_id, tarefa=tarefa)
+            nome = anexo.nome_original
+            anexo.arquivo.delete(save=False)
+            anexo.delete()
+            messages.success(request, f"Anexo '{nome}' removido com sucesso.")
+        except Anexo.DoesNotExist:
+            messages.error(request, 'Anexo não encontrado.')
+    else:
+        messages.error(request, 'Método não permitido.')
+    return redirect('projetos:detalhe-tarefa', pk=tarefa_id)
+
+@login_required
+def adicionar_anexo(request, tarefa_id):
+    if request.method == 'POST':
+        tarefa = get_object_or_404(Tarefa, id=tarefa_id)
+        if not hasattr(request.user, 'perfil') or request.user.perfil.tipo_usuario not in ['admin', 'membro']:
+            messages.error(request, 'Sem permissão para adicionar anexos.')
+            return redirect('projetos:detalhe-tarefa', pk=tarefa_id)
+        arquivos = request.FILES.getlist('anexos')
+        tipos_permitidos = ['application/pdf', 'image/png', 'image/jpeg']
+        adicionados = 0
+        for arquivo in arquivos:
+            if arquivo.content_type not in tipos_permitidos:
+                messages.warning(request, f"Anexo '{arquivo.name}' ignorado: formato não permitido.")
+                continue
+            Anexo.objects.create(
+                tarefa=tarefa,
+                usuario=request.user,
+                arquivo=arquivo,
+                nome_original=arquivo.name,
+                tamanho=arquivo.size,
+                tipo_mime=arquivo.content_type,
+            )
+            adicionados += 1
+        if adicionados:
+            messages.success(request, f'{adicionados} anexo(s) adicionado(s) com sucesso!')
+        return redirect('projetos:detalhe-tarefa', pk=tarefa_id)
+    messages.error(request, 'Método não permitido.')
     return redirect('projetos:detalhe-tarefa', pk=tarefa_id)
 
 # Dashboard
@@ -399,7 +499,29 @@ def admin_usuarios(request):
         messages.error(request, 'Acesso negado. Apenas administradores podem acessar esta área.')
         return redirect('projetos:dashboard')
     
-    usuarios = User.objects.select_related('perfil').all().order_by('date_joined')
+    search = request.GET.get('search', '').strip()
+    tipo_usuario = request.GET.get('tipo_usuario', '').strip()
+    status = request.GET.get('status', '').strip()
+
+    usuarios = User.objects.select_related('perfil').all()
+
+    if search:
+        usuarios = usuarios.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    if tipo_usuario in ['admin', 'membro']:
+        usuarios = usuarios.filter(perfil__tipo_usuario=tipo_usuario)
+
+    if status == 'active':
+        usuarios = usuarios.filter(is_active=True)
+    elif status == 'inactive':
+        usuarios = usuarios.filter(is_active=False)
+
+    usuarios = usuarios.order_by('date_joined')
     
     context = {
         'usuarios': usuarios,
@@ -501,7 +623,35 @@ def admin_equipes(request):
         messages.error(request, 'Acesso negado. Apenas administradores podem acessar esta área.')
         return redirect('projetos:dashboard')
     
-    equipes = Equipe.objects.prefetch_related('membros__usuario').all().order_by('nome')
+    # Filtros
+    search = request.GET.get('search', '').strip()
+    status = request.GET.get('status', '').strip()
+    membros = request.GET.get('membros', '').strip()
+
+    equipes = (
+        Equipe.objects
+        .annotate(num_membros=Count('membros', distinct=True))
+        .prefetch_related('membros__usuario')
+    )
+
+    if search:
+        equipes = equipes.filter(nome__icontains=search)
+
+    if status == 'active':
+        equipes = equipes.filter(ativa=True)
+    elif status == 'inactive':
+        equipes = equipes.filter(ativa=False)
+
+    if membros == 'empty':
+        equipes = equipes.filter(num_membros=0)
+    elif membros == 'small':
+        equipes = equipes.filter(num_membros__gte=1, num_membros__lte=5)
+    elif membros == 'medium':
+        equipes = equipes.filter(num_membros__gte=6, num_membros__lte=10)
+    elif membros == 'large':
+        equipes = equipes.filter(num_membros__gte=11)
+
+    equipes = equipes.order_by('nome')
     
     context = {
         'equipes': equipes,

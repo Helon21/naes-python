@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import PerfilUsuario, Equipe
+from .models import PerfilUsuario, Equipe, Tarefa
 
 class AdminUserCreationForm(UserCreationForm):
     tipo_usuario = forms.ChoiceField(
@@ -25,10 +25,9 @@ class AdminUserCreationForm(UserCreationForm):
         
         if commit:
             user.save()
-            PerfilUsuario.objects.create(
-                usuario=user,
-                tipo_usuario=self.cleaned_data['tipo_usuario']
-            )
+            perfil, _ = PerfilUsuario.objects.get_or_create(usuario=user)
+            perfil.tipo_usuario = self.cleaned_data['tipo_usuario']
+            perfil.save()
         
         return user
 
@@ -77,3 +76,13 @@ class EquipeForm(forms.ModelForm):
                 'placeholder': 'Digite uma descrição para a equipe'
             })
         }
+
+class TarefaForm(forms.ModelForm):
+    data_limite = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S']
+    )
+    
+    class Meta:
+        model = Tarefa
+        fields = ['titulo', 'descricao', 'status', 'prioridade', 'data_limite']

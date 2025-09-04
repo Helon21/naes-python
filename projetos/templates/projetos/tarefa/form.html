@@ -52,7 +52,7 @@
                 </h4>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <div class="row">
@@ -124,7 +124,7 @@
                         <div class="col-md-12 mb-3">
                             <label for="{{ form.data_limite.id_for_label }}" class="form-label">Data Limite</label>
                             {% if user.perfil.tipo_usuario in 'admin,membro' %}
-                            {{ form.data_limite }}
+                            <input type="datetime-local" name="data_limite" id="id_data_limite" class="form-control">
                             {% else %}
                             <input type="text" class="form-control" value="{{ form.data_limite.value|default:'Não definida' }}" readonly>
                             {% endif %}
@@ -135,24 +135,15 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Data e hora limite para conclusão da tarefa (opcional)</div>
+                            <div class="form-text">Data e hora limite para conclusão da tarefa (deve ser maior que hoje)</div>
                         </div>
                         
+                        {# Removido: campo de etiquetas #}
+
                         <div class="col-md-12 mb-3">
-                            <label for="{{ form.etiquetas.id_for_label }}" class="form-label">Etiquetas</label>
-                            {% if user.perfil.tipo_usuario in 'admin,membro' %}
-                            {{ form.etiquetas }}
-                            {% else %}
-                            <input type="text" class="form-control" value="Nenhuma etiqueta selecionada" readonly>
-                            {% endif %}
-                            {% if form.etiquetas.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.etiquetas.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="form-text">Selecione as etiquetas que melhor descrevem esta tarefa</div>
+                            <label class="form-label">Anexos (PDF, PNG, JPG, JPEG)</label>
+                            <input type="file" name="anexos" id="id_anexos" class="form-control" accept=".pdf,.png,.jpg,.jpeg" multiple>
+                            <div class="form-text">Formatos aceitos: PDF, PNG, JPG e JPEG. Você pode selecionar múltiplos arquivos.</div>
                         </div>
                     </div>
                     

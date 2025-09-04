@@ -51,10 +51,5 @@ class RegistroUsuarioForm(UserCreationForm):
         
         if commit:
             user.save()
-            from projetos.models import PerfilUsuario
-            PerfilUsuario.objects.create(
-                usuario=user,
-                tipo_usuario='membro'
-            )
         
         return user

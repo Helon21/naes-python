@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Ativar meus apps
-    "paginasweb.apps.PaginaswebConfig",
     "usuario.apps.UsuarioConfig",
     "projetos.apps.ProjetosConfig",
 
@@ -151,8 +150,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Configuração de autenticação
 
 LOGIN_REDIRECT_URL = 'projetos:dashboard'
-LOGOUT_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'

@@ -6,12 +6,10 @@ from .models import PerfilUsuario
 @receiver(post_save, sender=User)
 def criar_perfil_usuario(sender, instance, created, **kwargs):
     if created:
-        # Se for o usuário Helon, definir como admin
-        if instance.username == 'Helon':
-            PerfilUsuario.objects.create(usuario=instance, tipo_usuario='admin')
-        else:
-            # Outros usuários são membros por padrão
-            PerfilUsuario.objects.create(usuario=instance, tipo_usuario='membro')
+        tipo = 'admin' if instance.username == 'Helon' else 'membro'
+        PerfilUsuario.objects.get_or_create(usuario=instance, defaults={
+            'tipo_usuario': tipo
+        })
 
 @receiver(post_save, sender=User)
 def salvar_perfil_usuario(sender, instance, **kwargs):

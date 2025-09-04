@@ -109,19 +109,16 @@
 
 <!-- Quadro Kanban -->
 <div class="row">
-    {% for status in status_list %}
+    {% for coluna in colunas %}
         <div class="col-md-3">
             <div class="kanban-column">
-                <div class="kanban-column-header" style="border-left-color: {{ status.cor }}">
-                    <h5 class="mb-0">{{ status.nome }}</h5>
-                    <small class="text-muted">
-                        {{ projeto.tarefas.all|length }} tarefa{{ projeto.tarefas.all|length|pluralize }}
-                    </small>
+                <div class="kanban-column-header" style="border-left-color: {{ coluna.status.cor }}">
+                    <h5 class="mb-0">{{ coluna.status.nome }}</h5>
+                    <small class="text-muted">{{ coluna.count }} tarefa{{ coluna.count|pluralize }}</small>
                 </div>
                 
-                <div class="kanban-tasks" data-status-id="{{ status.id }}">
-                    {% for tarefa in projeto.tarefas.all %}
-                        {% if tarefa.status.id == status.id %}
+                <div class="kanban-tasks" data-status-id="{{ coluna.status.id }}">
+                    {% for tarefa in coluna.tarefas %}
                             <div class="task-card" data-task-id="{{ tarefa.id }}" draggable="true">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="mb-0">{{ tarefa.titulo }}</h6>
@@ -134,13 +131,7 @@
                                     {{ tarefa.descricao|truncatewords:15 }}
                                 </p>
                                 
-                                {% if tarefa.etiquetas.all %}
-                                    <div class="mb-2">
-                                        {% for etiqueta in tarefa.etiquetas.all %}
-                                            <span class="etiqueta" style="background-color: {{ etiqueta.cor }}"></span>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                                {# etiquetas removidas do card #}
                                 
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">
@@ -153,11 +144,10 @@
                                     </a>
                                 </div>
                             </div>
-                        {% endif %}
                     {% endfor %}
                     
                     {% if user.perfil.tipo_usuario in 'admin,membro' %}
-                    <button class="add-task-btn" onclick="window.location.href='{% url 'projetos:criar-tarefa' projeto.pk %}?status={{ status.id }}'">
+                    <button class="add-task-btn" onclick="window.location.href='{% url 'projetos:criar-tarefa' projeto.pk %}?status={{ coluna.status.id }}'">
                         <i class="bi bi-plus-circle"></i> Adicionar Tarefa
                     </button>
                     {% endif %}
