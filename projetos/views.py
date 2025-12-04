@@ -24,12 +24,13 @@ class EquipeListView(LoginRequiredMixin, ListView):
     model = Equipe
     template_name = 'projetos/equipe/lista.html'
     context_object_name = 'equipes'
+    paginate_by = 10  # Paginação: 10 itens por página
     
     def get_queryset(self):
         return Equipe.objects.filter(
             membros__usuario=self.request.user,
             ativa=True
-        ).distinct()
+        ).distinct().select_related('criada_por')
 
 class EquipeDetailView(LoginRequiredMixin, DetailView):
     model = Equipe
@@ -93,6 +94,7 @@ class ProjetoListView(LoginRequiredMixin, ListView):
     model = Projeto
     template_name = 'projetos/projeto/lista.html'
     context_object_name = 'projetos'
+    paginate_by = 10  # Paginação: 10 itens por página
     
     def get_queryset(self):
         equipe_id = self.kwargs.get('equipe_id')
@@ -101,11 +103,11 @@ class ProjetoListView(LoginRequiredMixin, ListView):
                 equipe_id=equipe_id,
                 ativo=True,
                 equipe__membros__usuario=self.request.user
-            )
+            ).select_related('equipe', 'criado_por')
         return Projeto.objects.filter(
             equipe__membros__usuario=self.request.user,
             ativo=True
-        )
+        ).select_related('equipe', 'criado_por')
 
 class ProjetoDetailView(LoginRequiredMixin, DetailView):
     model = Projeto

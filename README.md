@@ -11,10 +11,47 @@ Sistema de gerenciamento de projetos com quadros Kanban desenvolvido em Django.
 
 ## Instalação
 
-1. Clone o repositório
-2. Instale as dependências: `pip install -r requirements.txt`
-3. Execute as migrações: `python manage.py migrate`
-4. Execute o servidor: `python manage.py runserver`
+### 1. Criar e ativar ambiente virtual
+
+No Linux, você precisa criar um ambiente virtual para instalar pacotes Python:
+
+```bash
+# Criar o ambiente virtual
+python3 -m venv venv
+
+# Ativar o ambiente virtual
+source venv/bin/activate
+```
+
+Após ativar, você verá `(venv)` no início da linha do terminal.
+
+### 2. Instalar dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Executar migrações
+
+```bash
+python manage.py migrate
+```
+
+### 4. Executar o servidor
+
+```bash
+python manage.py runserver
+```
+
+O servidor estará disponível em `http://127.0.0.1:8000/`
+
+### 5. Desativar o ambiente virtual (quando terminar)
+
+```bash
+deactivate
+```
+
+**Nota**: Sempre ative o ambiente virtual antes de trabalhar no projeto!
 
 ## Usuário Administrador
 

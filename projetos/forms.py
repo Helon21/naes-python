@@ -80,9 +80,15 @@ class EquipeForm(forms.ModelForm):
 class TarefaForm(forms.ModelForm):
     data_limite = forms.DateTimeField(
         required=False,
-        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S']
+        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M']
     )
     
     class Meta:
         model = Tarefa
         fields = ['titulo', 'descricao', 'status', 'prioridade', 'data_limite']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Se for criação de tarefa (sem pk), excluir status "Concluído"
+        if not self.instance.pk:
+            self.fields['status'].queryset = self.fields['status'].queryset.exclude(nome='Concluído')

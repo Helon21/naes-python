@@ -124,7 +124,7 @@
                         <div class="col-md-12 mb-3">
                             <label for="{{ form.data_limite.id_for_label }}" class="form-label">Data Limite</label>
                             {% if user.perfil.tipo_usuario in 'admin,membro' %}
-                            <input type="datetime-local" name="data_limite" id="id_data_limite" class="form-control">
+                            <input type="datetime-local" name="data_limite" id="id_data_limite" class="form-control" step="60">
                             {% else %}
                             <input type="text" class="form-control" value="{{ form.data_limite.value|default:'Não definida' }}" readonly>
                             {% endif %}
@@ -221,6 +221,100 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const dataMinima = amanha.toISOString().slice(0, 16);
         dataLimite.min = dataMinima;
+        
+        // Prevenir avanço automático ao digitar números de 2 dígitos
+        // O problema: alguns navegadores (especialmente Chrome) avançam automaticamente
+        // quando você digita um número válido. Vamos interceptar isso.
+        
+        let typingState = {
+            isTyping: false,
+            lastValue: '',
+            lastCursorPos: 0,
+            segmentStart: 0
+        };
+        
+        // Detectar quando o usuário começa a digitar
+        dataLimite.addEventListener('focus', function() {
+            typingState.lastValue = this.value;
+            typingState.lastCursorPos = this.selectionStart;
+        });
+        
+        // Interceptar teclas numéricas
+        dataLimite.addEventListener('keydown', function(e) {
+            if (/\d/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                typingState.isTyping = true;
+                typingState.lastCursorPos = this.selectionStart;
+                typingState.lastValue = this.value;
+                
+                // Obter o segmento atual (ano, mês, dia, hora, minuto)
+                const value = this.value;
+                const cursorPos = this.selectionStart;
+                const beforeCursor = value.substring(0, cursorPos);
+                const segments = beforeCursor.split(/[-T:]/);
+                typingState.segmentStart = segments.length > 0 ? 
+                    beforeCursor.lastIndexOf(segments[segments.length - 1]) : 0;
+            }
+        });
+        
+        // Interceptar mudanças no valor
+        dataLimite.addEventListener('input', function(e) {
+            if (typingState.isTyping) {
+                const currentValue = e.target.value;
+                const currentPos = e.target.selectionStart;
+                
+                // Verificar se o navegador avançou automaticamente
+                // Se o cursor está em um separador e o segmento anterior não está completo,
+                // pode ser um avanço prematuro
+                if (currentPos < currentValue.length) {
+                    const charAtCursor = currentValue[currentPos];
+                    if (charAtCursor === '-' || charAtCursor === 'T' || charAtCursor === ':') {
+                        // Verificar o segmento anterior
+                        const beforeCursor = currentValue.substring(0, currentPos);
+                        const segments = beforeCursor.split(/[-T:]/);
+                        const currentSegment = segments[segments.length - 1] || '';
+                        
+                        // Se o segmento tem apenas 1 dígito e o usuário estava digitando,
+                        // pode ser avanço prematuro - vamos voltar o cursor
+                        if (currentSegment.length === 1 && typingState.lastCursorPos < currentPos) {
+                            // Voltar o cursor para o final do segmento atual
+                            setTimeout(function() {
+                                const newPos = typingState.segmentStart + currentSegment.length;
+                                e.target.setSelectionRange(newPos, newPos);
+                            }, 0);
+                        }
+                    }
+                }
+                
+                // Resetar após um delay
+                setTimeout(function() {
+                    typingState.isTyping = false;
+                }, 200);
+            }
+        });
+        
+        // Melhorar navegação com setas
+        dataLimite.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                const cursorPos = this.selectionStart;
+                const value = this.value;
+                
+                if (cursorPos < value.length && e.key === 'ArrowRight') {
+                    const charAtCursor = value[cursorPos];
+                    if (charAtCursor === '-' || charAtCursor === 'T' || charAtCursor === ':') {
+                        // Pular o separador
+                        this.setSelectionRange(cursorPos + 1, cursorPos + 1);
+                        e.preventDefault();
+                    }
+                } else if (cursorPos > 0 && e.key === 'ArrowLeft') {
+                    const charBefore = value[cursorPos - 1];
+                    if (charBefore === '-' || charBefore === 'T' || charBefore === ':') {
+                        // Pular o separador
+                        this.setSelectionRange(cursorPos - 1, cursorPos - 1);
+                        e.preventDefault();
+                    }
+                }
+            }
+        });
     }
 });
 </script>

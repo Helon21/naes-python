@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     # Outros complementos/apps
     "crispy_forms",
     "crispy_bootstrap5",
+    "django_filters",
+    "debug_toolbar",
 
 ]
 
@@ -56,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "naes2025.urls"
@@ -158,3 +161,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_REDIRECT_URL = 'projetos:dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
+
+# Django Debug Toolbar
+if DEBUG:
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
