@@ -11,6 +11,7 @@ from django.db.models import Q, Count, Max
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.contrib.auth.models import User
 from .models import (
@@ -524,9 +525,27 @@ def admin_usuarios(request):
         usuarios = usuarios.filter(is_active=False)
 
     usuarios = usuarios.order_by('date_joined')
-    
+
+    # Paginação
+    page = request.GET.get('page', 1)
+    paginator = Paginator(usuarios, 10)  # 10 usuários por página
+    try:
+        usuarios_page = paginator.page(page)
+    except PageNotAnInteger:
+        usuarios_page = paginator.page(1)
+    except EmptyPage:
+        usuarios_page = paginator.page(paginator.num_pages)
+
+    # Preservar parâmetros de consulta (exceto 'page') para links de paginação
+    get_params = request.GET.copy()
+    if 'page' in get_params:
+        get_params.pop('page')
+
     context = {
-        'usuarios': usuarios,
+        'usuarios': usuarios_page,
+        'page_obj': usuarios_page,
+        'paginator': paginator,
+        'get_params': get_params.urlencode(),
     }
     
     return render(request, 'projetos/admin/usuarios.html', context)
@@ -654,9 +673,27 @@ def admin_equipes(request):
         equipes = equipes.filter(num_membros__gte=11)
 
     equipes = equipes.order_by('nome')
-    
+
+    # Paginação
+    page = request.GET.get('page', 1)
+    paginator = Paginator(equipes, 10)  # 10 equipes por página
+    try:
+        equipes_page = paginator.page(page)
+    except PageNotAnInteger:
+        equipes_page = paginator.page(1)
+    except EmptyPage:
+        equipes_page = paginator.page(paginator.num_pages)
+
+    # Preservar parâmetros de consulta (exceto 'page') para links de paginação
+    get_params = request.GET.copy()
+    if 'page' in get_params:
+        get_params.pop('page')
+
     context = {
-        'equipes': equipes,
+        'equipes': equipes_page,
+        'page_obj': equipes_page,
+        'paginator': paginator,
+        'get_params': get_params.urlencode(),
     }
     
     return render(request, 'projetos/admin/equipes.html', context)
